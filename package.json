@@ -1,0 +1,47 @@
+{
+  "name": "@haroon0x/dsh-orchestrator",
+  "version": "0.1.0",
+  "description": "A native DeepSeek Harness orchestrator: see, inspect, message, and interrupt other live agents in the same process.",
+  "type": "module",
+  "license": "MIT",
+  "author": "haroon0x",
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "orchestrator",
+    "agent",
+    "fleet",
+    "multi-agent"
+  ],
+  "homepage": "https://github.com/haroon0x/dsh-orchestrator#readme",
+  "bugs": {
+    "url": "https://github.com/haroon0x/dsh-orchestrator/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/haroon0x/dsh-orchestrator.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}

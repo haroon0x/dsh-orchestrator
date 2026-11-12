@@ -1,0 +1,117 @@
+# Native DSH orchestration bundle patch.
+#
+# `tool-orchestrator` registers the four fleet tools and the orchestrator
+# prompt section once in the Host plane. The tools admit only Agents whose preset is
+# `orchestrator` (a step-time `when` gate), so every other Agent's tool catalog
+# and prompt stay exactly as they were.
+#
+# `preset-orchestrator` declares the agent itself: the standard manager
+# toolset (shell, files, search, jobs, schedule, skills, goals, compaction,
+# delegation, web, todo) plus the fleet tools inherited from the Host row.
+- insert:
+    - id: tool-orchestrator
+      name: '@haroon0x/dsh-orchestrator'
+
+    - id: preset-orchestrator
+      name: '@deepseek-ai/dsh-agent-preset'
+      config:
+        id: orchestrator
+        name: Orchestrator
+        description: Runs the fleet — sees every live agent's status and activity, then steers, unblocks, or stops them.
+        order: 2
+        plugins:
+          - id: fleet-persona
+            name: '@deepseek-ai/dsh-persona'
+            config:
+              prefix: You are the orchestrator for this Harness, powered by the {{model}} model. You manage the other agents running here — you see what each is doing, give them work, and unblock or stop them rather than doing their work yourself.
+          - id: fleet-agent-instructions
+            name: '@deepseek-ai/dsh-agent-instructions'
+            config:
+              maxBytes: 65536
+          - id: fleet-time-context
+            name: '@deepseek-ai/dsh-time-context'
+          - id: fleet-tool-bash
+            name: '@deepseek-ai/dsh-tool-bash'
+            disabled: !!js process.platform === 'win32'
+          - id: fleet-tool-pwsh
+            name: '@deepseek-ai/dsh-tool-pwsh'
+            disabled: !!js process.platform !== 'win32'
+          - id: fleet-tool-fs
+            name: '@deepseek-ai/dsh-tool-fs'
+            config:
+              applyPatch: false
+          - id: fleet-tool-fs-search
+            name: '@deepseek-ai/dsh-tool-fs-search'
+            config:
+              sampleOverCapGlobResults: false
+          - id: fleet-tool-jobs
+            name: '@deepseek-ai/dsh-tool-jobs'
+          - id: fleet-tool-schedule
+            name: '@deepseek-ai/dsh-tool-schedule'
+          - id: fleet-skill-filesystem
+            name: '@deepseek-ai/dsh-skill-filesystem'
+          - id: fleet-tool-skill
+            name: '@deepseek-ai/dsh-tool-skill'
+          - id: fleet-command-goal
+            name: '@deepseek-ai/dsh-command-goal'
+          - id: fleet-tool-goal
+            name: '@deepseek-ai/dsh-tool-goal'
+          - id: fleet-compaction
+            name: cordis:group
+            group: true
+            isolate:
+              compaction: true
+              toolResultPruner: true
+            config:
+              - id: fleet-compaction-basic
+                name: '@deepseek-ai/dsh-compaction-basic'
+              - id: fleet-command-compact
+                name: '@deepseek-ai/dsh-command-compact'
+              - id: fleet-tool-result-pruner
+                name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+                config:
+                  thresholdChars: 8192
+                  headChars: 4096
+                  tailChars: 1024
+          - id: fleet-delegation
+            name: cordis:group
+            group: true
+            isolate:
+              workflowEngine: true
+            config:
+              - id: fleet-tool-subagent-control
+                name: '@deepseek-ai/dsh-tool-subagent-control'
+              - id: fleet-tool-subagent
+                name: '@deepseek-ai/dsh-tool-subagent'
+                config:
+                  provider: spawn
+                  toolName: subagent
+                  modelSelection: true
+                  modelDiscovery: true
+                  # Workers are standard coding agents, not more orchestrators:
+                  # without this, an omitted preset joins the parent's composition.
+                  agentPreset: standard
+              - id: fleet-tool-subagent-fork
+                name: '@deepseek-ai/dsh-tool-subagent'
+                config:
+                  provider: fork
+                  toolName: subagent_fork
+              - id: fleet-workflow-ptc
+                name: '@deepseek-ai/dsh-workflow-ptc'
+                config:
+                  provider: spawn
+              - id: fleet-tool-workflow
+                name: '@deepseek-ai/dsh-tool-workflow'
+          - id: fleet-tool-ask-user
+            name: '@deepseek-ai/dsh-tool-ask-user'
+          - id: fleet-tool-todo
+            name: '@deepseek-ai/dsh-tool-todo'
+            config:
+              allowParallelInProgress: true
+          - id: fleet-tool-web
+            name: '@deepseek-ai/dsh-tool-web'
+            config:
+              fetch: true
+              searchTimeoutMs: 60000
+          - id: fleet-present
+            name: '@deepseek-ai/dsh-tool-present'
